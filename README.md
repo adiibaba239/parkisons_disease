@@ -1163,6 +1163,724 @@ Parkinson's Disease
 | Multi-language analysis | Expand to non-English speech recordings | Low |
 
 ---
+# 🚀 Setup & Run Guide — Parkinson's Disease Detection System
 
-*Documentation generated for the Parkinson's Disease Detection project — UCI Dataset.*  
+> Complete step-by-step instructions to run this project on **Google Colab**, **Streamlit**, **VS Code**, and **PyCharm**.
+
+---
+
+## Table of Contents
+
+1. [Quick Start Summary](#1-quick-start-summary)
+2. [Run on Google Colab (No Installation Required)](#2-run-on-google-colab-no-installation-required)
+3. [Run with Streamlit (Interactive Web App)](#3-run-with-streamlit-interactive-web-app)
+4. [Run on VS Code](#4-run-on-vs-code)
+5. [Run on PyCharm](#5-run-on-pycharm)
+6. [Run on Jupyter Notebook (Local)](#6-run-on-jupyter-notebook-local)
+7. [Run via Command Line (Terminal)](#7-run-via-command-line-terminal)
+8. [Environment Variables & Config](#8-environment-variables--config)
+9. [Troubleshooting Common Errors](#9-troubleshooting-common-errors)
+
+---
+
+## 1. Quick Start Summary
+
+| Platform | Difficulty | Install Required | Link |
+|---|---|---|---|
+| **Google Colab** | ⭐ Easy | ❌ None | [colab.research.google.com](https://colab.research.google.com) |
+| **Streamlit** | ⭐⭐ Medium | ✅ Python + pip | Local browser |
+| **VS Code** | ⭐⭐ Medium | ✅ Python + extensions | Local |
+| **PyCharm** | ⭐⭐ Medium | ✅ PyCharm IDE | Local |
+| **Jupyter Notebook** | ⭐ Easy | ✅ Jupyter | Local browser |
+| **Command Line** | ⭐ Easy | ✅ Python | Local terminal |
+
+---
+
+## 2. Run on Google Colab (No Installation Required)
+
+Google Colab is the **easiest way** to run this project — no local Python installation needed.
+
+### Step 1 — Open Google Colab
+Go to: [https://colab.research.google.com](https://colab.research.google.com)  
+Sign in with your Google account.
+
+### Step 2 — Create a New Notebook
+Click **`+ New notebook`**
+
+### Step 3 — Upload the Dataset
+In your notebook, run this cell to upload `parkinsons.data`:
+
+```python
+from google.colab import files
+uploaded = files.upload()   # A file picker will appear — upload parkinsons.data
+```
+
+### Step 4 — Install Dependencies
+Paste and run in a new cell:
+
+```python
+!pip install pandas numpy scikit-learn matplotlib seaborn
+# Note: tensorflow is pre-installed in Colab
+```
+
+### Step 5 — Upload and Run the Project Scripts
+Upload your Python files using the file panel on the left (📁 icon), or run them inline.
+
+**Option A — Upload scripts and run:**
+```python
+from google.colab import files
+files.upload()   # Upload main.py, predictor.py etc.
+```
+
+Then execute:
+```python
+!python main.py
+```
+
+**Option B — Paste code directly into Colab cells:**
+
+Copy the content of `main.py` into a cell and run it:
+```python
+# Paste the entire content of main.py here
+import pandas as pd
+import numpy as np
+# ... rest of the code
+```
+
+### Step 6 — Download Output Files
+After running, download generated files (charts, model):
+
+```python
+from google.colab import files
+files.download('parkinsons_model.pkl')
+files.download('feature_importance.png')
+files.download('model_comparison.png')
+files.download('target_distribution.png')
+files.download('correlation_heatmap.png')
+```
+
+### Step 7 — Run Data Exploration
+```python
+!python data_exploration.py
+```
+Charts will appear directly inside the Colab notebook.
+
+### Step 8 — Run the ML Comparison
+```python
+!python parkinsons_ml_detection.py
+```
+
+### Step 9 — Run the Neural Network
+```python
+!pip install tensorflow   # Only if not pre-installed
+!python parkinsons_detection.py
+```
+Epoch logs will stream live in the Colab output cell.
+
+### Complete Colab Notebook Template:
+
+```python
+# =============================================
+# CELL 1: Install Libraries
+# =============================================
+!pip install pandas numpy scikit-learn matplotlib seaborn tensorflow
+
+# =============================================
+# CELL 2: Upload Dataset
+# =============================================
+from google.colab import files
+uploaded = files.upload()   # Upload parkinsons.data
+
+# =============================================
+# CELL 3: Run Full System
+# =============================================
+from google.colab import files
+uploaded = files.upload()   # Upload main.py
+
+!python main.py
+
+# =============================================
+# CELL 4: Show Visualizations Inline
+# =============================================
+from IPython.display import Image
+Image('target_distribution.png')
+```
+
+---
+
+## 3. Run with Streamlit (Interactive Web App)
+
+Streamlit converts the project into a **browser-based interactive app** with sliders and visual results.
+
+### Step 1 — Install Streamlit
+```bash
+pip install streamlit
+```
+
+### Step 2 — Install All Dependencies
+```bash
+pip install pandas numpy scikit-learn matplotlib seaborn streamlit plotly
+```
+
+### Step 3 — Create the Streamlit App
+Create a new file called `streamlit_app.py` in your project folder with the following content:
+
+```python
+import streamlit as st
+import pandas as pd
+import numpy as np
+import pickle
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import os
+
+# ─────────────────────────────────────────────
+# Page Configuration
+# ─────────────────────────────────────────────
+st.set_page_config(
+    page_title="Parkinson's Disease Detection",
+    page_icon="🧠",
+    layout="wide"
+)
+
+st.title("🧠 Parkinson's Disease Detection System")
+st.markdown("### AI-powered Voice Biomarker Analysis")
+st.markdown("---")
+
+# ─────────────────────────────────────────────
+# Load or Train Model
+# ─────────────────────────────────────────────
+@st.cache_resource
+def load_model():
+    if os.path.exists('parkinsons_model.pkl'):
+        with open('parkinsons_model.pkl', 'rb') as f:
+            data = pickle.load(f)
+        return data['model'], data['scaler'], data['feature_names']
+    else:
+        # Train from scratch
+        df = pd.read_csv('parkinsons.data')
+        X = df.drop(['name', 'status'], axis=1)
+        y = df['status']
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42, stratify=y)
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        model = RandomForestClassifier(n_estimators=100, random_state=42)
+        model.fit(X_train_scaled, y_train)
+        return model, scaler, X.columns.tolist()
+
+model, scaler, feature_names = load_model()
+
+# ─────────────────────────────────────────────
+# Sidebar Navigation
+# ─────────────────────────────────────────────
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to:", [
+    "🏠 Home",
+    "📊 Dataset Explorer",
+    "🤖 Make Prediction",
+    "📈 Model Performance"
+])
+
+# ─────────────────────────────────────────────
+# HOME PAGE
+# ─────────────────────────────────────────────
+if page == "🏠 Home":
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Dataset Size", "195 recordings")
+    col2.metric("Model Accuracy", "92.3%")
+    col3.metric("Features Used", "22 biomarkers")
+
+    st.markdown("""
+    ## About This Application
+    This system uses **Machine Learning** to detect Parkinson's Disease from voice recordings.
+
+    ### How It Works:
+    1. 🎤 Voice is recorded and acoustic features are extracted
+    2. 📊 22 biomarker values are passed to the AI model
+    3. 🤖 Random Forest Classifier predicts the diagnosis
+    4. 📋 Confidence score is returned with the prediction
+    """)
+
+# ─────────────────────────────────────────────
+# DATASET EXPLORER
+# ─────────────────────────────────────────────
+elif page == "📊 Dataset Explorer":
+    st.header("📊 Dataset Explorer")
+    df = pd.read_csv('parkinsons.data')
+    
+    st.subheader("Raw Dataset Preview")
+    st.dataframe(df.head(10))
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("Class Distribution")
+        fig, ax = plt.subplots()
+        df['status'].value_counts().plot(kind='bar', ax=ax, color=['green', 'red'])
+        ax.set_xticklabels(["Healthy (0)", "Parkinson's (1)"], rotation=0)
+        ax.set_ylabel("Count")
+        st.pyplot(fig)
+
+    with col2:
+        st.subheader("Feature Correlation Heatmap")
+        fig2, ax2 = plt.subplots(figsize=(8, 6))
+        corr = df.drop(['name', 'status'], axis=1).corr()
+        sns.heatmap(corr, cmap='coolwarm', center=0, ax=ax2, linewidths=0.3)
+        st.pyplot(fig2)
+
+    st.subheader("Feature Statistics")
+    st.dataframe(df.drop(['name', 'status'], axis=1).describe())
+
+# ─────────────────────────────────────────────
+# MAKE PREDICTION
+# ─────────────────────────────────────────────
+elif page == "🤖 Make Prediction":
+    st.header("🤖 Make a Prediction")
+    st.markdown("Adjust the sliders below to enter voice feature values.")
+    
+    feature_defaults = {
+        'MDVP:Fo(Hz)': 150.0, 'MDVP:Fhi(Hz)': 200.0, 'MDVP:Flo(Hz)': 100.0,
+        'MDVP:Jitter(%)': 0.006, 'MDVP:Jitter(Abs)': 0.00004,
+        'MDVP:RAP': 0.003, 'MDVP:PPQ': 0.003, 'Jitter:DDP': 0.009,
+        'MDVP:Shimmer': 0.03, 'MDVP:Shimmer(dB)': 0.3,
+        'Shimmer:APQ3': 0.015, 'Shimmer:APQ5': 0.02,
+        'MDVP:APQ': 0.025, 'Shimmer:DDA': 0.045,
+        'NHR': 0.015, 'HNR': 22.0,
+        'RPDE': 0.45, 'DFA': 0.72,
+        'spread1': -5.5, 'spread2': 0.22, 'D2': 2.3, 'PPE': 0.2
+    }
+
+    input_values = {}
+    cols = st.columns(3)
+    for i, feat in enumerate(feature_names):
+        with cols[i % 3]:
+            default = feature_defaults.get(feat, 0.0)
+            input_values[feat] = st.number_input(feat, value=default, format="%.5f")
+
+    if st.button("🔍 Predict", type="primary", use_container_width=True):
+        features = np.array([input_values[f] for f in feature_names]).reshape(1, -1)
+        scaled = scaler.transform(features)
+        prediction = model.predict(scaled)[0]
+        proba = model.predict_proba(scaled)[0]
+
+        st.markdown("---")
+        if prediction == 1:
+            st.error(f"## 🔴 Parkinson's Disease Detected")
+        else:
+            st.success(f"## 🟢 Healthy — No Parkinson's Detected")
+
+        col1, col2 = st.columns(2)
+        col1.metric("Confidence", f"{max(proba)*100:.1f}%")
+        col2.metric("P(Parkinson's)", f"{proba[1]*100:.1f}%")
+
+        # Probability bar
+        fig, ax = plt.subplots(figsize=(6, 2))
+        ax.barh(['Healthy', "Parkinson's"], [proba[0], proba[1]],
+                color=['#2ecc71', '#e74c3c'])
+        ax.set_xlim(0, 1)
+        ax.set_xlabel("Probability")
+        st.pyplot(fig)
+
+# ─────────────────────────────────────────────
+# MODEL PERFORMANCE
+# ─────────────────────────────────────────────
+elif page == "📈 Model Performance":
+    st.header("📈 Model Performance")
+
+    df = pd.read_csv('parkinsons.data')
+    X = df.drop(['name', 'status'], axis=1)
+    y = df['status']
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y)
+    X_test_scaled = scaler.transform(X_test)
+    y_pred = model.predict(X_test_scaled)
+
+    accuracy = accuracy_score(y_test, y_pred)
+    st.metric("Test Accuracy", f"{accuracy*100:.2f}%")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("Confusion Matrix")
+        cm = confusion_matrix(y_test, y_pred)
+        fig, ax = plt.subplots()
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax,
+                    xticklabels=["Healthy", "Parkinson's"],
+                    yticklabels=["Healthy", "Parkinson's"])
+        ax.set_xlabel("Predicted")
+        ax.set_ylabel("Actual")
+        st.pyplot(fig)
+
+    with col2:
+        st.subheader("Feature Importance (Top 10)")
+        importance_df = pd.DataFrame({
+            'feature': feature_names,
+            'importance': model.feature_importances_
+        }).sort_values('importance', ascending=True).tail(10)
+        fig2, ax2 = plt.subplots()
+        ax2.barh(importance_df['feature'], importance_df['importance'])
+        ax2.set_xlabel("Importance")
+        st.pyplot(fig2)
+```
+
+### Step 4 — Run the Streamlit App
+
+Open your terminal in the project folder and run:
+```bash
+streamlit run streamlit_app.py
+```
+
+The app opens automatically in your browser at:
+```
+http://localhost:8501
+```
+
+### Step 5 — Using the App
+| Tab | What to do |
+|---|---|
+| 🏠 Home | Overview metrics and description |
+| 📊 Dataset Explorer | View raw data, distribution charts, and correlations |
+| 🤖 Make Prediction | Enter 22 biomarker values using sliders → get result |
+| 📈 Model Performance | View confusion matrix and feature importance |
+
+### Stop the App
+Press `Ctrl + C` in the terminal.
+
+---
+
+## 4. Run on VS Code
+
+### Step 1 — Install VS Code
+Download from: [https://code.visualstudio.com](https://code.visualstudio.com)
+
+### Step 2 — Install the Python Extension
+1. Open VS Code
+2. Press `Ctrl + Shift + X` (Extensions)
+3. Search **"Python"** → Install the Microsoft Python extension
+
+### Step 3 — Open the Project Folder
+```
+File → Open Folder → Select your project folder (akshita_project)
+```
+
+### Step 4 — Create a Virtual Environment
+Open the integrated terminal (`Ctrl + \``):
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# Mac/Linux
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### Step 5 — Install Dependencies
+```bash
+pip install -r requirements.txt
+pip install streamlit plotly   # If using the Streamlit app
+```
+
+### Step 6 — Select the Python Interpreter
+1. Press `Ctrl + Shift + P`
+2. Type: **"Python: Select Interpreter"**
+3. Choose the `venv` interpreter from the list (it shows the venv path)
+
+### Step 7 — Run Scripts
+**Option A — Run via terminal:**
+```bash
+python main.py
+```
+
+**Option B — Run via VS Code Run button:**
+- Open `main.py`
+- Press the **▶ Run** button (top right) or press `F5`
+
+**Option C — Run with debugger:**
+- Set breakpoints by clicking next to line numbers
+- Press `F5` → Select "Python File"
+
+### Step 8 — Run Streamlit from VS Code
+```bash
+streamlit run streamlit_app.py
+```
+VS Code will open a browser automatically.
+
+### Recommended VS Code Extensions
+| Extension | Purpose |
+|---|---|
+| Python (Microsoft) | Core Python support |
+| Pylance | Better autocomplete |
+| Jupyter | Run .ipynb notebooks |
+| GitLens | Git tracking |
+| Rainbow CSV | View .data/.csv files |
+
+---
+
+## 5. Run on PyCharm
+
+### Step 1 — Install PyCharm
+Download Community (free) edition: [https://www.jetbrains.com/pycharm/](https://www.jetbrains.com/pycharm/)
+
+### Step 2 — Open the Project
+```
+File → Open → Navigate to akshita_project folder → Click OK
+```
+
+### Step 3 — Configure the Python Interpreter
+```
+File → Settings → Project: akshita_project → Python Interpreter
+```
+Click the ⚙ gear icon → **Add Interpreter** → **Virtual Environment** → **New**  
+Select Python 3.x as base interpreter → Click OK.
+
+### Step 4 — Install Packages via PyCharm
+```
+File → Settings → Python Interpreter → Click [ + ] button
+Search: pandas → Install
+Search: scikit-learn → Install
+Search: tensorflow → Install
+Search: matplotlib → Install
+Search: seaborn → Install
+Search: streamlit → Install
+```
+
+Or use the terminal inside PyCharm:
+```bash
+pip install -r requirements.txt
+```
+
+### Step 5 — Run Scripts
+1. Open `main.py` in the editor
+2. Right-click inside the file → **Run 'main'**
+   OR press the **▶ Run** button in the top toolbar.
+
+### Step 6 — Run Streamlit in PyCharm Terminal
+1. Open terminal: `View → Tool Windows → Terminal`
+2. Run:
+```bash
+streamlit run streamlit_app.py
+```
+
+### Step 7 — Configure a Run Configuration for Streamlit
+```
+Run → Edit Configurations → [ + ] → Python
+Name: Streamlit App
+Script path: path/to/your/venv/Scripts/streamlit  (or use module)
+Parameters: run streamlit_app.py
+```
+Click **OK** → Use the ▶ button to launch.
+
+---
+
+## 6. Run on Jupyter Notebook (Local)
+
+### Step 1 — Install Jupyter
+```bash
+pip install notebook
+```
+
+### Step 2 — Launch Jupyter
+```bash
+jupyter notebook
+```
+A browser tab opens at `http://localhost:8888`
+
+### Step 3 — Create a New Notebook
+Click **New → Python 3**
+
+### Step 4 — Run the Project in Cells
+
+**Cell 1 — Install libraries:**
+```python
+import subprocess
+subprocess.run(['pip', 'install', 'pandas', 'numpy', 'scikit-learn',
+                'matplotlib', 'seaborn', 'tensorflow'])
+```
+
+**Cell 2 — Run data exploration:**
+```python
+%run data_exploration.py
+```
+
+**Cell 3 — Run ML comparison:**
+```python
+%run parkinsons_ml_detection.py
+```
+
+**Cell 4 — Full system run:**
+```python
+%run main.py
+```
+
+**Cell 5 — Show saved images inline:**
+```python
+from IPython.display import Image, display
+display(Image('target_distribution.png'))
+display(Image('feature_importance.png'))
+display(Image('model_comparison.png'))
+```
+
+**Cell 6 — Direct prediction:**
+```python
+from predictor import ParkinsonsPredictor
+
+predictor = ParkinsonsPredictor()
+predictor.load_model()
+
+# Example: first row of dataset
+import pandas as pd
+df = pd.read_csv('parkinsons.data')
+sample = df.iloc[0].drop(['name', 'status']).values
+
+result = predictor.predict_sample(sample)
+print(f"Prediction : {result['prediction']}")
+print(f"Confidence : {result['confidence']:.2%}")
+```
+
+---
+
+## 7. Run via Command Line (Terminal)
+
+### Windows (Command Prompt / PowerShell)
+
+```powershell
+# Navigate to the project folder
+cd path\to\akshita_project
+
+# Create and activate virtual environment
+python -m venv venv
+venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the full system
+python main.py
+
+# Run data exploration
+python data_exploration.py
+
+# Run ML model comparison
+python parkinsons_ml_detection.py
+
+# Run Neural Network training
+python parkinsons_detection.py
+
+# Run the predictor demo
+python predictor.py
+
+# Run Streamlit app
+pip install streamlit
+streamlit run streamlit_app.py
+```
+
+### Mac / Linux (Terminal)
+
+```bash
+# Navigate to project
+cd /path/to/akshita_project
+
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run scripts
+python3 main.py
+python3 data_exploration.py
+python3 parkinsons_ml_detection.py
+python3 parkinsons_detection.py
+python3 predictor.py
+
+# Streamlit
+pip install streamlit
+streamlit run streamlit_app.py
+```
+
+---
+
+## 8. Environment Variables & Config
+
+No `.env` file is required. The project auto-detects the dataset file `parkinsons.data` from the current working directory.
+
+### Configurable Constants in `main.py`:
+
+| Variable | Default | Description |
+|---|---|---|
+| `filename` | `'parkinsons.data'` | Path to the dataset CSV |
+| `model filename` | `'parkinsons_model.pkl'` | Path to save/load model |
+| `test_size` | `0.2` | 20% held out for testing |
+| `random_state` | `42` | Seed for reproducibility |
+| `n_estimators` | `100` | Number of trees in Random Forest |
+| `cv` | `5` | Number of folds for cross-validation |
+| `epochs` | `100` | Neural network training epochs |
+| `batch_size` | `16` | Keras mini-batch size |
+
+---
+
+## 9. Troubleshooting Common Errors
+
+### ❌ `ModuleNotFoundError: No module named 'sklearn'`
+```bash
+pip install scikit-learn
+```
+
+### ❌ `ModuleNotFoundError: No module named 'tensorflow'`
+```bash
+pip install tensorflow-cpu   # CPU version (lighter)
+# OR
+pip install tensorflow       # Full GPU version
+```
+
+### ❌ `FileNotFoundError: parkinsons.data not found`
+Make sure you run the scripts **from inside** the project folder:
+```bash
+cd akshita_project
+python main.py    # NOT: python akshita_project/main.py
+```
+
+### ❌ `ValueError: X has 22 features but StandardScaler expects N features`
+The wrong scaler is loaded. Delete `parkinsons_model.pkl` and let it retrain:
+```bash
+del parkinsons_model.pkl      # Windows
+rm parkinsons_model.pkl       # Mac/Linux
+python main.py                # Retrains and saves fresh model
+```
+
+### ❌ Streamlit `port 8501 already in use`
+```bash
+streamlit run streamlit_app.py --server.port 8502
+```
+
+### ❌ Colab: `FileNotFoundError: parkinsons.data`
+Re-upload the file:
+```python
+from google.colab import files
+files.upload()   # Upload parkinsons.data again
+```
+
+### ❌ PyCharm: `No Python interpreter configured`
+Go to:  
+`File → Settings → Project → Python Interpreter → Add Interpreter → System/Virtual`
+
+### ❌ Matplotlib plots not showing on Colab
+Add this at the top of your script before any plot commands:
+```python
+import matplotlib
+matplotlib.use('Agg')   # Removes display requirement
+```
+Then use `plt.savefig()` and `Image('file.png')` to show inline.
+
+---
+
+> ✅ After following these steps, the application should be fully operational on your chosen platform.
+> 
+> For issues, check that `parkinsons.data` is present in the same folder as the scripts.
+
 *For research and educational purposes only. Not a clinical diagnostic tool.*
